@@ -7,10 +7,6 @@ import logging
 from scrapy.exceptions import NotConfigured
 
 
-class AWSLambdaPipelineException(Exception):
-    pass
-
-
 class AWSLambdaPipeline(object):
 
     DEFAULT_REGION = 'us-west-1'
@@ -43,10 +39,12 @@ class AWSLambdaPipeline(object):
             try:
                 res = self.client.invoke(FunctionName=self.function_name,
                                          InvocationType='Event',
-                                         Payload=json.dumps(item))
+                                         Payload=json.dumps(dict(item)))
                 logging.debug('Invoked lambda function: {},'
                               ' response: {}'.format(self.function_name, res))
             except Exception as e:
-                raise AWSLambdaPipelineException(e.message)
+                logging.error('error {} when invoking'
+                              ' lambda: {}'.format(e.message,
+                                                   self.function_name))
 
             return item
